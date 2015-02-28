@@ -50,7 +50,7 @@ public class SimpleRPG {
 
         logger.info("[SF] Attempting to spawn a SMALL_FIREBALL");
         if (optional.isPresent()) {
-            optional.get().setVelocity(new Vector3d(1.0,0.1,1.0));
+            optional.get().setVelocity(getVelocity(player, 1.5D));
             SmallFireball fireball = (SmallFireball) optional.get();
             fireball.setShooter(player);
             world.spawnEntity(fireball);
@@ -65,13 +65,33 @@ public class SimpleRPG {
 
         logger.info("[SF] Attempting to spawn a LARGE_FIREBALL");
         if (optional.isPresent()) {
-            optional.get().setVelocity(new Vector3d(1.0,0.1,1.0));
+            optional.get().setVelocity(getVelocity(player, 1));
             LargeFireball fireball = (LargeFireball) optional.get();
             fireball.setShooter(player);
-            fireball.setExplosionPower(10);
+            fireball.setExplosionPower(20);
             world.spawnEntity(fireball);
             logger.info("Spawned a LARGE_FIREBALL!");
         }
+    }
+
+    private static Vector3d getVelocity(Player player, int multiplier) {
+        double pitch = ((player.getRotation().getY() + 90) * Math.PI) / 180;
+        double yaw  = ((player.getRotation().getX() + 90)  * Math.PI) / 180;
+        double x = Math.sin(pitch) * Math.cos(yaw);
+        double y = Math.sin(pitch) * Math.sin(yaw);
+        double z = Math.cos(pitch);
+        Vector3d velocity = new Vector3d(x, y, z);
+        return velocity.mul(multiplier);
+    }
+
+    private static Vector3d getVelocity(Player player, double multiplier) {
+        double pitch = ((player.getRotation().getY() + 90) * Math.PI) / 180;
+        double yaw  = ((player.getRotation().getX() + 90)  * Math.PI) / 180;
+        double x = Math.sin(pitch) * Math.cos(yaw);
+        double y = Math.sin(pitch) * Math.sin(yaw);
+        double z = Math.cos(pitch);
+        Vector3d velocity = new Vector3d(x, y, z);
+        return velocity.mul(multiplier);
     }
 
 }
