@@ -1,16 +1,23 @@
 package com.afterkraft;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.projectile.fireball.Fireball;
 import org.spongepowered.api.entity.projectile.fireball.LargeFireball;
 import org.spongepowered.api.entity.projectile.fireball.SmallFireball;
 import org.spongepowered.api.event.entity.living.player.PlayerInteractEvent;
+import org.spongepowered.api.event.state.ServerStartingEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.event.Order;
 import org.spongepowered.api.util.event.Subscribe;
 import org.spongepowered.api.world.World;
@@ -26,6 +33,18 @@ public class SimpleRPG {
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private PluginContainer container;
+
+    private final WeakHashMap<Fireball, Vector3d> fireballMap = new
+            WeakHashMap<Fireball, Vector3d>();
+
+    @Subscribe
+    public void onStarting(ServerStartingEvent event) {
+        event.getGame().getSyncScheduler().runRepeatingTask(container, new
+                FireballUpdater(),1);
+    }
 
     @Subscribe(order = Order.POST)
     public void onInteract(PlayerInteractEvent event) {
@@ -50,10 +69,12 @@ public class SimpleRPG {
 
         logger.info("[SF] Attempting to spawn a SMALL_FIREBALL");
         if (optional.isPresent()) {
-            optional.get().setVelocity(getVelocity(player, 1.5D));
+            Vector3d velocity = getVelocity(player, 1.5D);
+            optional.get().setVelocity(velocity);
             SmallFireball fireball = (SmallFireball) optional.get();
             fireball.setShooter(player);
             world.spawnEntity(fireball);
+            fireballMap.put(fireball, velocity);
             logger.info("Spawned a SMALL_FIREBALL!");
         }
     }
@@ -65,11 +86,13 @@ public class SimpleRPG {
 
         logger.info("[SF] Attempting to spawn a LARGE_FIREBALL");
         if (optional.isPresent()) {
-            optional.get().setVelocity(getVelocity(player, 1));
+            Vector3d velocity = getVelocity(player, 1.5D);
+            optional.get().setVelocity(velocity);
             LargeFireball fireball = (LargeFireball) optional.get();
             fireball.setShooter(player);
-            fireball.setExplosionPower(20);
+            fireball.setExplosionPower(5);
             world.spawnEntity(fireball);
+            fireballMap.put(fireball, velocity);
             logger.info("Spawned a LARGE_FIREBALL!");
         }
     }
@@ -83,6 +106,17 @@ public class SimpleRPG {
         double rotXSin = Math.sin(Math.toRadians(yaw));
         Vector3d velocity = new Vector3d((multiplier * rotYCos) * rotXCos, multiplier * rotYSin, (multiplier * rotYCos) * rotXSin);
         return velocity;
+    }
+
+    private class FireballUpdater implements Runnable {
+
+        @Override
+        public void run() {
+            for (Map.Entry<Fireball, Vector3d> entry : fireballMap.entrySet()) {
+                entry.getKey().setVelocity(entry.getValue());
+            }
+
+        }
     }
 
 }
