@@ -74,24 +74,15 @@ public class SimpleRPG {
         }
     }
 
-    private static Vector3d getVelocity(Player player, int multiplier) {
-        double pitch = ((player.getRotation().getY() + 90) * Math.PI) / 180;
-        double yaw  = ((player.getRotation().getX() + 90)  * Math.PI) / 180;
-        double x = Math.sin(pitch) * Math.cos(yaw);
-        double y = Math.sin(pitch) * Math.sin(yaw);
-        double z = Math.cos(pitch);
-        Vector3d velocity = new Vector3d(x, y, z);
-        return velocity.mul(multiplier);
-    }
-
     private static Vector3d getVelocity(Player player, double multiplier) {
-        double pitch = ((player.getRotation().getY() + 90) * Math.PI) / 180;
-        double yaw  = ((player.getRotation().getX() + 90)  * Math.PI) / 180;
-        double x = Math.sin(pitch) * Math.cos(yaw);
-        double y = Math.sin(pitch) * Math.sin(yaw);
-        double z = Math.cos(pitch);
-        Vector3d velocity = new Vector3d(x, y, z);
-        return velocity.mul(multiplier);
+        double yaw = ((player.getRotation().getX() + 90) % 360);
+        double pitch  = ((player.getRotation().getY()) * -1);
+        double rotYCos = Math.cos(Math.toRadians(pitch));
+        double rotYSin = Math.sin(Math.toRadians(pitch));
+        double rotXCos = Math.cos(Math.toRadians(yaw));
+        double rotXSin = Math.sin(Math.toRadians(yaw));
+        Vector3d velocity = new Vector3d((multiplier * rotYCos) * rotXCos, multiplier * rotYSin, (multiplier * rotYCos) * rotXSin);
+        return velocity;
     }
 
 }
